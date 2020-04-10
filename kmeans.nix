@@ -1,5 +1,6 @@
 { mkDerivation, async, base, bytestring, containers, directory, filepath
 , mtl, stdenv, stm, text, time, hspec, QuickCheck, mwc-random, vector
+, Chart, Chart-diagrams, deepseq
 }:
 mkDerivation {
   pname = "kmeans";
@@ -12,7 +13,7 @@ mkDerivation {
   ];
   libraryHaskellDepends = [
     async bytestring containers directory filepath mtl stm text time
-    vector mwc-random
+    vector mwc-random Chart Chart-diagrams deepseq
   ];
   testHaskellDepends = [
     base hspec QuickCheck

@@ -32,6 +32,7 @@ module KMeans (
   , wss
   -- ^ Reexports
   , module KMeans.Data
+  , module Control.DeepSeq
   ) where
 
 -----------------------------------------------------------
@@ -49,6 +50,8 @@ import           GHC.TypeLits
 import           Positive            (Positive (..))
 import qualified Positive
 import           KMeans.Data
+import           Control.DeepSeq
+import           GHC.Generics (Generic)
 
 -----------------------------------------------------------
 -----------------------------------------------------------
@@ -58,7 +61,8 @@ data KMeans = KMeans
     { -- points   :: [Point]        -- ^ Points to cluster.
       clusters :: Vector Cluster -- ^ Each cluster is identified by its position in the array.
     }
-  deriving (Show)
+  deriving stock (Show, Generic)
+  deriving anyclass (NFData)
 
 -- | Given n samples and the number of clusters,
 -- computes for each sample its corresponding cluster.
@@ -68,7 +72,7 @@ fit points = fit' (Vector.fromList points)
 
 fit' :: Vector Point -> Int -> KMeans
 fit' points k =
-  let it = 100 :: Int -- TODO: fixed for now
+  let it = 10 :: Int -- TODO: fixed for now
       initial = randomAssignment k points
   in KMeans (go it initial)
     where
@@ -108,7 +112,7 @@ randomAssignment k points =
 -- The centroid of a cluster is the representative of the cluster.
 easy :: [Point] -> KMeans
 easy points =
-  let kmax = 100
+  let kmax = 10 -- TODO: small but computational cost is too high
   in fst $ minimumBy
           (\x1 x2 -> snd x1 `compare` snd x2)
           [ let r = fit points k in (r, wss r)
