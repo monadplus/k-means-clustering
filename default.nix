@@ -1,6 +1,6 @@
 { nixpkgs     ? import ./nix/nixpkgs.nix {}
 , compiler    ? "ghc881"
-, doBenchmark ? false
+, doBenchmark ? true
 }:
 
 let
@@ -31,6 +31,6 @@ let
 in
   doStatic (
     doBench (
-      haskellPackages.callPackage ./kmeans.nix {}
+      haskellPackages.callCabal2nix "kmeans" ./. {}
     )
   )

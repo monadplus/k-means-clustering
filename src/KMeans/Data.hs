@@ -64,8 +64,8 @@ newtype Cluster = Cluster { getPoints :: [Point] }
 -- | The centroid is the average of the positions in each dimension.
 getCentroid :: Cluster -> Centroid
 getCentroid (Cluster points) =
-  let
-      f (Sum p) = p / (fromIntegral (length points))
+  let n = fromIntegral $ length points
+      f (Sum p) = p / n
       (c1, c2) = bimap f f $ foldMap (\(Point x y) -> (Sum x, Sum y)) points
   in Centroid (Point c1 c2)
 

@@ -54,8 +54,8 @@ generatePositives' :: (KnownNat n) => Int -> Proxy n -> Vector Positive
 generatePositives' m proxy = fmap (toPositive proxy) $ generateInts m
 
 generateInts :: Int -> Vector Int
-generateInts n =
+generateInts m =
   Unsafe.unsafePerformIO $ do
     Random.withSystemRandom . Random.asGenST
-      $ \gen -> Random.uniformVector gen n
+      $ \gen -> Random.uniformVector gen m
     -- ^^^^ withSystemRandom is expensive, use create if you want to reuse RNG

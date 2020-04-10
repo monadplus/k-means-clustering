@@ -1,4 +1,4 @@
-cabal-version:       3.0
+cabal-version:       >= 1.10
 
 name:                kmeans
 version:             0.1.0.0
@@ -19,44 +19,38 @@ source-repository head
   type:                git
   location:            https://github.com/monadplus/kmeans
 
-common common-options
-  ghc-options: -Wall
-               -O2
+Executable kmeans
   default-language: Haskell2010
-
-common common-dependencies
-  build-depends: base            >=4.9     && <4.14
-
-executable kmeans
-  import: common-dependencies
-  import: common-options
   main-is: Main.hs
   hs-source-dirs: app
   build-depends: kmeans
+               , base        >=4.9      && <4.14
                , time        >=1.8.0.0  && <2.0.0.0
-               , vector      ^>=0.12
-  ghc-options: -threaded
+               , vector      >=0.12     && <0.13
+  ghc-options: -Wall
+               -O2
+               -threaded
                -rtsopts
                -with-rtsopts=-N
 
-library
-  import: common-dependencies
-  import: common-options
+Library
+  default-language: Haskell2010
   build-depends:
-       async          >=2.2.2    && <3.0.0
+       base           >=4.9      && <4.14
+     , async          >=2.2.2    && <3.0.0
      , bytestring     >=0.10.8.2 && <0.11.0.0
      , containers     >=0.5.0.1  && <0.7
-     , deepseq        ^>=1.4
+     , deepseq        >=1.4      && <1.5
      , directory      >=1.3.0.0  && <1.4.0.0
      , filepath       >=1.4.0.0  && <1.5.0.0
      , mtl            >=2.0.0.0  && <2.3
-     , mwc-random     ^>=0.14
+     , mwc-random     >=0.14     && <0.15
      , stm            >=2.5.0.0  && <2.6.0.0
      , text           >=1.2.3.0  && <2.0.0.0
      , time           >=1.8.0.0  && <2.0.0.0
-     , vector         ^>=0.12
-     , Chart          ^>=1.9
-     , Chart-diagrams ^>=1.9
+     , vector         >=0.12     && <0.13
+     , Chart          >=1.9      && <2.0
+     , Chart-diagrams >=1.9      && <2.0
   exposed-modules:
      KMeans
      KMeans.Data
@@ -65,16 +59,33 @@ library
   other-modules:
   default-extensions: OverloadedStrings
   hs-source-dirs: src
+  ghc-options: -Wall
+               -O2
 
-test-suite kmeans-tests
-  import: common-dependencies
-  import common-options
+Benchmark kmeans-bench
+  default-language: Haskell2010
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: bench
+  main-is:        Benchmark.hs
+
+  build-depends:  kmeans
+                , base      >=4.9      && <4.14
+                , criterion >=1.5.0.0  && <2.0.0.0
+  ghc-options: -Wall
+               -O2
+
+Test-suite kmeans-tests
+  default-language: Haskell2010
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   hs-source-dirs: test
-  build-depends: hspec             >=2.6.0    && <2.8
+  build-depends: kmeans
+               , base              >=4.9      && <4.14
+               , hspec             >=2.6.0    && <2.8
                , QuickCheck        >=2.12     && <2.14
   other-modules:
-  ghc-options:   -threaded
+  ghc-options:   -Wall
+                 -O2
+                 -threaded
                  -rtsopts
                  -with-rtsopts=-N
