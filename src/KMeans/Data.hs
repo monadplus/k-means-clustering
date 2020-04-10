@@ -30,7 +30,8 @@ module KMeans.Data (
   -- ^ Util
   , euclideanDistance
   , getCentroid
-  , generateRandomPoints
+  , generateUniformPoints
+  , generateStandardPoints
   -- ^ Coordinate
   , Coordinate(..)
   ) where
@@ -40,10 +41,14 @@ module KMeans.Data (
 import           Data.Monoid
 import qualified System.IO.Unsafe  as Unsafe
 import qualified System.Random.MWC as Random
+import qualified System.Random.MWC.Distributions as Random
 import           Data.Vector         (Vector)
+import qualified Data.Vector as Vector
 import           Data.Bifunctor
 import           Control.DeepSeq
 import           GHC.Generics (Generic)
+import           Control.Monad.ST (ST)
+import           Control.Applicative (liftA2)
 
 -----------------------------------------------------------
 
@@ -77,13 +82,22 @@ newtype Centroid = Centroid Point
 
 -- | Generate 'n' pseudo-random points using Marsaglia's MWC256 (also known as MWC8222) multiply-with-carry generator.
 --
--- Notice, this returns values in (0,1).
-generateRandomPoints :: Int -> Vector Point
-generateRandomPoints n =
+-- The values follow a U(0,1)-distribution
+generateUniformPoints :: Int -> Vector Point
+generateUniformPoints n = generatePoints' Random.uniform n
+
+-- | Generate 'n' pseudo-random points using Marsaglia's MWC256 (also known as MWC8222) multiply-with-carry generator.
+--
+-- The values follow a N(0,1)-distribution
+generateStandardPoints :: Int -> Vector Point
+generateStandardPoints n = generatePoints' (\gen -> liftA2 (,) (Random.standard gen) (Random.standard gen)) n
+
+generatePoints' :: (Random.GenST s -> ST s (Double, Double))-> Int -> Vector Point
+generatePoints' f n =
   fmap (\(x1, x2) -> Point x1 x2)
     $ Unsafe.unsafePerformIO
       $ do Random.withSystemRandom . Random.asGenST
-             $ \gen -> Random.uniformVector gen n
+             $ \gen -> Vector.replicateM n (f gen)
 
 -------------------------------------------------------------------
 

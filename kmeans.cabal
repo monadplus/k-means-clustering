@@ -27,7 +27,7 @@ Executable kmeans
                , base        >=4.9      && <4.14
                , time        >=1.8.0.0  && <2.0.0.0
                , vector      >=0.12     && <0.13
-  ghc-options: -Wall
+  ghc-options:
                -O2
                -threaded
                -rtsopts
@@ -54,9 +54,10 @@ Library
   exposed-modules:
      KMeans
      KMeans.Data
+     KMeans.Easy
      KMeans.Plot
-     Positive
   other-modules:
+     Positive
   default-extensions: OverloadedStrings
   hs-source-dirs: src
   ghc-options: -Wall

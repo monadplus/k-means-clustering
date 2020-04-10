@@ -4,31 +4,44 @@ Aims to partition n observations into k clusters in which each observation belon
 
 ## Cost Analysis
 
+Total cost (2-dimensions) = O(t*n*k)
+Total cost (d-dimensions) = O(t*n*k*d)
+Total cost (2-dimensions, unknwon k) = O(kmax * t * n * k)
+
 n = #points
 k = #clusters
+t = #iterations until wss <= ε
+d = #dimensions
+
+### Detailed Cost Analysis
 
 getCentroid = O(n + n + ops) = O(n)
   - length = O(n)
   - centroid = O(n)
 
-nearest = O(k)
-  - min = O(k)
-  - k * euclidean distance = k * O(1) = O(k)
+nearest = O(k + k) = O(k)
+  - minIndex = O(k)
+  - #centroids * euclidean_distance = k * O(1) = O(k)
 
-computeCluster = n + O(1) = O(n)
+computeCluster = O(k + n + n) = O(n)
+  - replicate = O(k)
+  - foldM = O(n)
+  - freeze = O(n)
 
-recomputeCluster = O(n*k)
-  - k * getCentroid = k * O(n) = O(k*n)
-  - n * nearest = b * O(k) = O(n*k)
-  - compute cluster = O(n+1)
-
-generatePositives =
-
-randomAssignment = O(n + C)
-  - generate positives = O(n + C), where C = amortized cost of generating PRN
+recomputeCluster = O(n*k + n*k + n) = O(n*k)
+  - #clusters * getCentroid = O(k*n)
+  - #points * nearest = O(n*k)
   - computeCluster = O(n)
 
-Total cost = O(d*n*k)
-  - list to vec             = O(n)
-  - random assigments       = O(n+C)
-  - it * recompute cluster  = O(d*n*k)
+generatePositives = O(n)
+  - uniformVector = O(n*c) = O(n), where c is the cost of generating a PRN ~O()
+  - toPositive = O(1)
+
+randomAssignment = O(n)
+  - generatePositives = O(n)
+  - computeCluster = O(n)
+
+Total cost = O(t*n*k)
+  - 1*list to vec                  = O(n)
+  - 1*randomAssigments             = O(n)
+  - iterations * recomputeCluster  = O(t*n*k)

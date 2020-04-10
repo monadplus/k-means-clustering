@@ -25,6 +25,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 module KMeans.Plot (
     scatter
+  , elbow
   ) where
 
 -----------------------------------------------------------
@@ -35,11 +36,12 @@ import qualified Graphics.Rendering.Chart.Backend.Diagrams as Backend
 import           Graphics.Rendering.Chart.Easy
 import           KMeans                                    (Cluster (..), KMeans (..))
 import qualified KMeans.Data                               as KMeans
+import           Control.Monad (void)
 
 -----------------------------------------------------------
 
 scatter :: FilePath -> KMeans -> IO ()
-scatter fp KMeans{..} = Backend.toFile def fp $ do
+scatter fp KMeans{..} = toFile fp $ do
   layout_title      .= "k-means Cluster"
   layout_background .= solidFillStyle (opaque white)
 
@@ -67,3 +69,20 @@ scatter fp KMeans{..} = Backend.toFile def fp $ do
                      $ plot_annotation_hanchor .~ HTA_Centre
                      $ plot_annotation_vanchor .~ VTA_Top
                      $ def
+
+-- | Elbow Plot
+elbow :: FilePath -> [(Int, Double)] -> IO ()
+elbow fp points' = toFile' fp $ do
+  layout_title      .= "k-means Cluster"
+  layout_background .= solidFillStyle (opaque white)
+  layout_plots      .= [ toPlot $ plot_lines_values .~ [points']
+                                $ def
+                       ]
+  where
+    -- Inference workaround
+    toFile' :: (Default a, ToRenderable a) => FilePath -> EC a () -> IO ()
+    toFile' = toFile
+
+
+toFile :: (ToRenderable a) => FilePath -> a -> IO ()
+toFile fp = void . Backend.renderableToFile def fp . toRenderable

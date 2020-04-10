@@ -27,9 +27,6 @@ module KMeans (
   -- ^ Constructors
   , fit
   , fit'
-  , easy
-  -- ^ Util
-  , wss
   -- ^ Reexports
   , module KMeans.Data
   , module Control.DeepSeq
@@ -40,9 +37,7 @@ module KMeans (
 
 import qualified Control.Monad.ST    as ST
 import           Data.Coerce
-import           Data.List
 import qualified Data.Maybe          as Maybe
-import           Data.Monoid
 import           Data.Vector         (Vector)
 import qualified Data.Vector         as Vector
 import qualified Data.Vector.Mutable as MVector
@@ -103,30 +98,3 @@ randomAssignment :: Int -> Vector Point -> Vector Cluster
 randomAssignment k points =
   let indexes = Positive.generatePositives (length points) . Maybe.fromJust . someNatVal . fromIntegral $ k
   in computeClusters k (Vector.zip indexes points)
-
--------------------------------------------------------------------
--------------------------------------------------------------------
-
--- | Given n samples, computes the optimal k that minimizes the within-cluster-sum of squared erros
--- using the elbow method, and returns for each sample its corresponding cluster.
--- The centroid of a cluster is the representative of the cluster.
-easy :: [Point] -> KMeans
-easy points =
-  let kmax = 10 -- TODO: small but computational cost is too high
-  in fst $ minimumBy
-          (\x1 x2 -> snd x1 `compare` snd x2)
-          [ let r = fit points k in (r, wss r)
-          | k <- [1..kmax]
-          ]
-
--- | Compute Within-Cluster-Sum of Squared Errors
---
--- Source: <https://discuss.analyticsvidhya.com/t/what-is-within-cluster-sum-of-squares-by-cluster-in-k-means/2706/2>
-wss :: KMeans -> Double
-wss KMeans{..} =
-  getSum $ foldMap ssc clusters
-    where
-      ssc cluster =
-         let points = getPoints cluster
-             Centroid c = getCentroid cluster
-         in foldMap (\p -> Sum $ euclideanDistance p c) points
