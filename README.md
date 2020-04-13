@@ -1,47 +1,11 @@
-## k-means Clustering
+## K-Means Clustering
 
-Aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean (cluster centers or cluster centroid), serving as a prototype of the cluster. This results in a partitioning of the data space into Voronoi cells. It is popular for cluster analysis in data mining.
+`k-means clustering` algorithm aims to partition `n` observations into `k` clusters in which each observation belongs to the cluster with the `nearest mean` (cluster centers or cluster centroid), serving as a prototype of the cluster. This results in a partitioning of the data space into `Voronoi cells`. It is popular for cluster analysis in data mining.
 
-## Cost Analysis
+The total cost on d-dimensions is `O(t*n*k*d)-time`, where t = #iterations until convergence of clusters, n = #points, k = #clusters.
 
-Total cost (2-dimensions) = O(t*n*k)
-Total cost (d-dimensions) = O(t*n*k*d)
-Total cost (2-dimensions, unknwon k) = O(kmax * t * n * k)
+![Figure 1. k-means Clustering Plot](./img/kmeans.png)
 
-n = #points
-k = #clusters
-t = #iterations until wss <= ε
-d = #dimensions
+## Future Work
 
-### Detailed Cost Analysis
-
-getCentroid = O(n + n + ops) = O(n)
-  - length = O(n)
-  - centroid = O(n)
-
-nearest = O(k + k) = O(k)
-  - minIndex = O(k)
-  - #centroids * euclidean_distance = k * O(1) = O(k)
-
-computeCluster = O(k + n + n) = O(n)
-  - replicate = O(k)
-  - foldM = O(n)
-  - freeze = O(n)
-
-recomputeCluster = O(n*k + n*k + n) = O(n*k)
-  - #clusters * getCentroid = O(k*n)
-  - #points * nearest = O(n*k)
-  - computeCluster = O(n)
-
-generatePositives = O(n)
-  - uniformVector = O(n*c) = O(n), where c is the cost of generating a PRN ~O()
-  - toPositive = O(1)
-
-randomAssignment = O(n)
-  - generatePositives = O(n)
-  - computeCluster = O(n)
-
-Total cost = O(t*n*k)
-  - 1*list to vec                  = O(n)
-  - 1*randomAssigments             = O(n)
-  - iterations * recomputeCluster  = O(t*n*k)
+Implement a faster k-means Clustering Algorithm: <https://annals-csis.org/proceedings/2014/pliks/258.pdf>

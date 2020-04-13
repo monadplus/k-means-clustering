@@ -29,6 +29,7 @@ module KMeans.Data (
   , Centroid(..)
   -- ^ Util
   , euclideanDistance
+  , notSqrtEuclideanDistance
   , getCentroid
   , generateUniformPoints
   , generateStandardPoints
@@ -38,13 +39,11 @@ module KMeans.Data (
 
 -----------------------------------------------------------
 
-import           Data.Monoid
 import qualified System.IO.Unsafe  as Unsafe
 import qualified System.Random.MWC as Random
 import qualified System.Random.MWC.Distributions as Random
 import           Data.Vector         (Vector)
 import qualified Data.Vector as Vector
-import           Data.Bifunctor
 import           Control.DeepSeq
 import           GHC.Generics (Generic)
 import           Control.Monad.ST (ST)
@@ -58,21 +57,29 @@ data Point = Point {-# UNPACK #-} !Double {-# UNPACK #-} !Double
 
 euclideanDistance :: Point -> Point -> Double
 euclideanDistance (Point p1 p2) (Point q1 q2) =
-  sqrt . sum . fmap (**2) $ [(q1-p1), (p2-q2)]
+  let !d = sqrt $ ((q1-p1)^(2::Int)) + ((p2-q2)^(2::Int)) in d
+{-# INLINEABLE euclideanDistance #-}
+
+-- Sometimes you don't need the square root so this is faster
+notSqrtEuclideanDistance :: Point -> Point -> Double
+notSqrtEuclideanDistance (Point p1 p2) (Point q1 q2) =
+  let !d = (q1-p1)^(2::Int) + (p2-q2)^(2::Int) in d
+{-# INLINEABLE notSqrtEuclideanDistance #-}
 
 newtype Cluster = Cluster { getPoints :: [Point] }
-  deriving stock (Generic)
-  deriving newtype (Eq, Ord, Show)
+  deriving stock    (Generic)
+  deriving newtype  (Eq, Ord, Show)
   deriving anyclass (NFData)
-
 
 -- | The centroid is the average of the positions in each dimension.
 getCentroid :: Cluster -> Centroid
 getCentroid (Cluster points) =
-  let n = fromIntegral $ length points
-      f (Sum p) = p / n
-      (c1, c2) = bimap f f $ foldMap (\(Point x y) -> (Sum x, Sum y)) points
-  in Centroid (Point c1 c2)
+  let (!x'', !y'', !n) = foldl (\(!x,!y, !len) (Point !x' !y') -> (x+x',y+y',len+1)) (0,0,0) points
+      !cx = x''/n
+      !cy = y''/n
+  in Centroid (Point cx cy)
+{-# INLINEABLE getCentroid #-}
+
 
 -- | Centroid of a 'Cluster'
 newtype Centroid = Centroid Point
@@ -85,12 +92,14 @@ newtype Centroid = Centroid Point
 -- The values follow a U(0,1)-distribution
 generateUniformPoints :: Int -> Vector Point
 generateUniformPoints n = generatePoints' Random.uniform n
+{-# INLINEABLE generateUniformPoints #-}
 
 -- | Generate 'n' pseudo-random points using Marsaglia's MWC256 (also known as MWC8222) multiply-with-carry generator.
 --
 -- The values follow a N(0,1)-distribution
 generateStandardPoints :: Int -> Vector Point
 generateStandardPoints n = generatePoints' (\gen -> liftA2 (,) (Random.standard gen) (Random.standard gen)) n
+{-# INLINEABLE generateStandardPoints #-}
 
 generatePoints' :: (Random.GenST s -> ST s (Double, Double))-> Int -> Vector Point
 generatePoints' f n =
@@ -98,6 +107,7 @@ generatePoints' f n =
     $ Unsafe.unsafePerformIO
       $ do Random.withSystemRandom . Random.asGenST
              $ \gen -> Vector.replicateM n (f gen)
+{-# INLINEABLE generatePoints' #-}
 
 -------------------------------------------------------------------
 
@@ -106,6 +116,8 @@ class Coordinate a where
 
 instance Coordinate Point where
   toCoordinate (Point !x!y) = (x,y)
+  {-# INLINE toCoordinate #-}
 
 instance Coordinate Centroid where
   toCoordinate (Centroid (Point !x !y)) = (x, y)
+  {-# INLINE toCoordinate #-}

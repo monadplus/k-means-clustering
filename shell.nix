@@ -8,6 +8,6 @@ let
 in
   env.overrideAttrs (oldAttrs: {
     buildInputs = with pkgs.haskellPackages; oldAttrs.buildInputs ++ [
-      cabal-install cabal2nix ghcid
+      cabal-install cabal2nix ghcid profiteur
     ];
   })

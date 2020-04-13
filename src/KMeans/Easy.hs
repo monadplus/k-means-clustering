@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 module KMeans.Easy (
     easy
@@ -9,7 +10,7 @@ module KMeans.Easy (
 
 import           Data.List
 import           Data.Monoid
-import           KMeans
+import           KMeans0
 import qualified KMeans.Plot as Plot
 import           Data.Vector (Vector)
 import qualified Data.Vector as Vector
@@ -20,15 +21,17 @@ import qualified Data.Vector as Vector
 -- The centroid of a cluster is the representative of the cluster.
 easy :: [Point] -> KMeans
 easy = easy' . Vector.fromList
+{-# INLINEABLE easy #-}
 
 easy' :: Vector Point -> KMeans
 easy' points =
   let kmax = 10
   in fst $ minimumBy
-          (\x1 x2 -> snd x1 `compare` snd x2)
+          (\ !x1 !x2 -> snd x1 `compare` snd x2)
           [ let r = fit' points k in (r, wss r)
           | k <- [1..kmax]
           ]
+{-# INLINEABLE easy' #-}
 
 -- | WSS Elbow Plot
 --
@@ -41,6 +44,7 @@ plotK fp points = do
                 | k <- [1..kmax]
                 ]
   Plot.elbow fp points'
+{-# INLINEABLE plotK #-}
 
 -- | Compute Within-Cluster-Sum of Squared Errors
 --
@@ -52,4 +56,5 @@ wss KMeans{..} =
       ssc cluster =
          let points = getPoints cluster
              Centroid c = getCentroid cluster
-         in foldMap (\p -> Sum $ euclideanDistance p c) points
+          in foldMap (\p -> let !s = euclideanDistance p c in Sum s) points
+{-# INLINEABLE wss #-}

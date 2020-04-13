@@ -34,7 +34,7 @@ import           Data.Foldable                             (traverse_)
 import qualified Data.Vector                               as Vector
 import qualified Graphics.Rendering.Chart.Backend.Diagrams as Backend
 import           Graphics.Rendering.Chart.Easy
-import           KMeans                                    (Cluster (..), KMeans (..))
+import           KMeans0                                   (Cluster (..), KMeans (..))
 import qualified KMeans.Data                               as KMeans
 import           Control.Monad (void)
 

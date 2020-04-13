@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DefaultSignatures          #-}
 {-# LANGUAGE DeriveAnyClass             #-}
@@ -45,13 +46,17 @@ newtype Positive = Positive { getInteger :: Int }
   deriving newtype (Eq, Ord, Show)
 
 toPositive :: (KnownNat n) => Proxy n -> Int -> Positive
-toPositive proxy x = Positive $ abs (x `mod` fromIntegral (natVal proxy))
+toPositive proxy !x = let !r = abs (x `mod` fromIntegral (natVal proxy)) in Positive r
+{-# INLINEABLE toPositive #-}
+
 
 generatePositives :: Int -> SomeNat -> Vector Positive
-generatePositives m (SomeNat proxy) = generatePositives' m proxy
+generatePositives !m (SomeNat proxy) = generatePositives' m proxy
+{-# INLINEABLE generatePositives #-}
 
 generatePositives' :: (KnownNat n) => Int -> Proxy n -> Vector Positive
-generatePositives' m proxy = fmap (toPositive proxy) $ generateInts m
+generatePositives' !m proxy = fmap (toPositive proxy) $ generateInts m
+{-# INLINEABLE generatePositives' #-}
 
 generateInts :: Int -> Vector Int
 generateInts m =
@@ -59,3 +64,4 @@ generateInts m =
     Random.withSystemRandom . Random.asGenST
       $ \gen -> Random.uniformVector gen m
     -- ^^^^ withSystemRandom is expensive, use create if you want to reuse RNG
+{-# INLINEABLE generateInts #-}
